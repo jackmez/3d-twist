@@ -1,14 +1,11 @@
 import './style.css'
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
-import * as dat from 'lil-gui'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 
 /**
  * Base
  */
-// Debug
-const gui = new dat.GUI()
 
 // Canvas
 const canvas = document.querySelector('canvas.webgl')
@@ -16,13 +13,11 @@ const canvas = document.querySelector('canvas.webgl')
 // Scene
 const scene = new THREE.Scene()
 
-let geometry
-
 /**
  * Models
  */
+let geometry
 const gltfLoader = new GLTFLoader()
-
 gltfLoader.load(
     '/models/Circ/Circ.gltf',
     (gltf) =>
@@ -37,6 +32,8 @@ gltfLoader.load(
         const shape = new THREE.Mesh(geometry, material)
         shape.scale.set(0.025, 0.025, 0.025)
         scene.add(shape)
+
+        tick()
     }
 
 )
@@ -44,9 +41,8 @@ gltfLoader.load(
 /**
  * twist
  */
- const twist = (geometry) =>
+ const twist = (geometry, twistAmount) =>
  {
-    console.log(geometry)
     const quaternion = new THREE.Quaternion()
     const positionAttribute = geometry.attributes.position
     const vertices = new THREE.Vector3()    
@@ -58,7 +54,6 @@ gltfLoader.load(
         vertices.fromBufferAttribute(positionAttribute, i)
         const pos = vertices.x
         const upVec = new THREE.Vector3(1, 0, 0)
-        const twistAmount = 2
 
         quaternion.setFromAxisAngle(
             upVec, 
@@ -100,7 +95,7 @@ window.addEventListener('resize', () =>
  */
 // Base camera
 const camera = new THREE.PerspectiveCamera(75, sizes.width / sizes.height, 0.1, 100)
-camera.position.set(0, 0, -20)
+camera.position.set(0, 0, -15)
 scene.add(camera)
 
 // Controls
@@ -122,8 +117,21 @@ renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
 /**
  * Animate
  */
+
+ window.addEventListener('mousemove', onMouseUp, false);
+ const mouse = new THREE.Vector2();
+
+ function onMouseUp(event) {
+    mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+    mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+  }
+
+  
+
 const clock = new THREE.Clock()
 let previousTime = 0
+
+let mat = Math.PI, speed = Math.PI / 120, forwards
 
 const tick = () =>
 {
@@ -134,8 +142,17 @@ const tick = () =>
     // Update controls
     controls.update()
 
-    // twist
-    twist(geometry)
+    mat = mat - deltaTime
+
+    if(mat <= 0) {
+        mat = Math.PI
+        forwards = forwards * -1
+    } else {
+        forwards = 1
+    }
+    // run twist
+    twist(geometry, (mat >= Math.PI / 2 ? -200 : 200) * forwards)
+
 
     // Render
     renderer.render(scene, camera)
@@ -144,4 +161,3 @@ const tick = () =>
     window.requestAnimationFrame(tick)
 }
 
-tick()
