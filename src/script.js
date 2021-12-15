@@ -44,8 +44,9 @@ gltfLoader.load(
 /**
  * twist
  */
- const twist = () =>
+ const twist = (geometry) =>
  {
+    console.log(geometry)
     const quaternion = new THREE.Quaternion()
     const positionAttribute = geometry.attributes.position
     const vertices = new THREE.Vector3()    
@@ -67,12 +68,9 @@ gltfLoader.load(
         updateVertices.push(vertices.x, vertices.y, vertices.z )
     
     }
-
     newVertices = new Float32Array(updateVertices)
     geometry.setAttribute('position', new THREE.BufferAttribute( newVertices, 3 ))
-
  }
-
 
 /**
  * Sizes
